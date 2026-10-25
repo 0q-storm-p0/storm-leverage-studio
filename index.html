@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>STORM Leverage Studio — محاسبه‌گر اهرم</title>
+    <style>
+      :root {
+        --bg: #f4f5f8;
+        --panel: rgba(255, 255, 255, 0.82);
+        --panel-solid: #fff;
+        --text: #171923;
+        --muted: #707586;
+        --line: rgba(24, 30, 45, 0.11);
+        --accent: #6658e8;
+        --accent2: #9a8cff;
+        --good: #168b68;
+        --bad: #d34e68;
+        --field: #f7f8fb;
+        --shadow: 0 24px 70px rgba(28, 31, 56, 0.09);
+        --glow: rgba(102, 88, 232, 0.13);
+      }
+
+      [data-theme="dark"] {
+        --bg: #0c0d13;
+        --panel: rgba(24, 26, 37, 0.82);
+        --panel-solid: #181a25;
+        --text: #f3f4fb;
+        --muted: #9a9daf;
+        --line: rgba(255, 255, 255, 0.1);
+        --accent: #a095ff;
+        --accent2: #7162ed;
+        --good: #56d6ad;
+        --bad: #ff7891;
+        --field: #11131d;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+        --glow: rgba(142, 128, 255, 0.15);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(ellipse at 8% 0%, var(--glow), transparent 35%),
+          radial-gradient(
+            ellipse at 95% 95%,
+            rgba(30, 180, 150, 0.07),
+            transparent 30%
+          ),
+          var(--bg);
+        color: var(--text);
+        transition:
+          background 0.25s,
+          color 0.25s;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .wrap {
+        max-width: 1120px;
+        margin: auto;
+        padding: 28px 22px 46px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 48px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        color: white;
+        background: linear-gradient(135deg, #8b7cff, #5142c7);
+        box-shadow: 0 8px 22px rgba(102, 88, 232, 0.28);
+      }
+
+      .logo svg {
+        width: 23px;
+        height: 23px;
+      }
+
+      .brandname {
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+
+      .brandname small {
+        display: block;
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        margin-top: 3px;
+        direction: ltr;
+        text-align: right;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .pill {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--text);
+        border-radius: 99px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+
+      .hero {
+        margin-bottom: 30px;
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 800;
+        direction: ltr;
+        text-align: right;
+      }
+
+      .hero h1 {
+        font-size: clamp(30px, 5vw, 48px);
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+        margin: 12px 0;
+      }
+
+      .hero p {
+        color: var(--muted);
+        margin: 0;
+        max-width: 650px;
+        line-height: 1.9;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(310px, 0.85fr);
+        gap: 20px;
+        align-items: start;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        backdrop-filter: blur(18px);
+        border-radius: 24px;
+        padding: 25px;
+        box-shadow: var(--shadow);
+      }
+
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .card-head h2 {
+        font-size: 17px;
+        margin: 0;
+      }
+
+      .step {
+        font-size: 11px;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        padding: 6px 9px;
+        border-radius: 99px;
+        direction: ltr;
+      }
+
+      .fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 17px;
+      }
+
+      .field {
+        min-width: 0;
+      }
+
+      .field.full {
+        grid-column: 1/-1;
+      }
+
+      .field label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 9px;
+      }
+
+      .unit {
+        font-size: 11px;
+        opacity: 0.8;
+        direction: ltr;
+      }
+
+      .input-wrap {
+        position: relative;
+      }
+
+      .input-wrap input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: var(--field);
+        color: var(--text);
+        padding: 14px 13px;
+        outline: none;
+        transition:
+          border 0.2s,
+          box-shadow 0.2s;
+        direction: ltr;
+        text-align: left;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .input-wrap input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--glow);
+      }
+
+      .field-hint {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 7px;
+        line-height: 1.6;
+      }
+
+      .fee-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: 23px 0 12px;
+      }
+
+      .fee-head strong {
+        font-size: 13px;
+      }
+
+      .sync {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .sync input {
+        accent-color: var(--accent);
+        width: 16px;
+        height: 16px;
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--line);
+        margin: 24px 0;
+      }
+
+      .range-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+
+      .range-head strong {
+        font-size: 13px;
+      }
+
+      .range-values {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .mini-label {
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 7px;
+      }
+
+      .range-note {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 9px;
+        line-height: 1.7;
+      }
+
+      .result-card {
+        position: sticky;
+        top: 20px;
+        overflow: hidden;
+      }
+
+      .result-card:before {
+        content: "";
+        position: absolute;
+        width: 240px;
+        height: 240px;
+        border-radius: 50%;
+        background: var(--glow);
+        filter: blur(10px);
+        top: -120px;
+        left: -100px;
+        pointer-events: none;
+      }
+
+      .result-top {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .result-label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .status {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 7px 10px;
+        border-radius: 99px;
+        background: rgba(22, 139, 104, 0.12);
+        color: var(--good);
+      }
+
+      .status.short {
+        background: rgba(211, 78, 104, 0.12);
+        color: var(--bad);
+      }
+
+      .lev-number {
+        direction: ltr;
+        text-align: right;
+        font-size: clamp(48px, 6vw, 66px);
+        font-weight: 850;
+        letter-spacing: -0.06em;
+        margin: 22px 0 4px;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .lev-number span {
+        font-size: 20px;
+        letter-spacing: 0;
+        color: var(--muted);
+        margin-left: 7px;
+      }
+
+      .subline {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .meter {
+        height: 7px;
+        background: var(--line);
+        border-radius: 99px;
+        overflow: hidden;
+        margin: 23px 0 8px;
+      }
+
+      .meter-fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--accent2), var(--accent));
+        border-radius: 99px;
+        transition: width 0.25s;
+      }
+
+      .meter-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--muted);
+        direction: ltr;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 23px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        padding: 13px;
+        background: rgba(127, 127, 127, 0.025);
+      }
+
+      .stat span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        margin-bottom: 8px;
+      }
+
+      .stat strong {
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+        direction: ltr;
+        display: block;
+        text-align: right;
+      }
+
+      .explain {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        margin-top: 17px;
+        font-size: 12px;
+        line-height: 1.9;
+        color: var(--muted);
+      }
+
+      .explain b {
+        color: var(--text);
+      }
+
+      .warning {
+        display: none;
+        margin-top: 14px;
+        padding: 12px 13px;
+        border-radius: 12px;
+        color: var(--bad);
+        background: rgba(211, 78, 104, 0.09);
+        font-size: 12px;
+        line-height: 1.8;
+      }
+
+      .warning.show {
+        display: block;
+      }
+
+      .footnote {
+        margin-top: 20px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.9;
+      }
+
+      .footnote strong {
+        color: var(--text);
+      }
+
+      .reset {
+        border: 0;
+        background: transparent;
+        color: var(--accent);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-top: 22px;
+        color: var(--muted);
+        font-size: 11px;
+        direction: ltr;
+      }
+
+      .footer span:last-child {
+        direction: rtl;
+      }
+
+      @media (max-width: 800px) {
+        .wrap {
+          padding: 20px 15px 35px;
+        }
+
+        .topbar {
+          margin-bottom: 35px;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .result-card {
+          position: relative;
+          top: auto;
+        }
+
+        .hero h1 {
+          font-size: 34px;
+        }
+
+        .card {
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 430px) {
+        .fields {
+          grid-template-columns: 1fr;
+        }
+
+        .field.full {
+          grid-column: auto;
+        }
+
+        .topbar {
+          align-items: flex-start;
+        }
+
+        .pill .theme-label {
+          display: none;
+        }
+
+        .hero h1 {
+          font-size: 30px;
+        }
+
+        .range-values {
+          gap: 9px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 17l6-6 4 3 8-9" />
+              <path d="M15 5h6v6" />
+            </svg>
+          </div>
+          <div class="brandname">
+            STORM LEVERAGE STUDIO<small>PRECISION RISK TOOLS</small>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button
+            class="pill"
+            id="themeToggle"
+            type="button"
+            aria-label="تغییر تم"
+          >
+            <span id="themeIcon">☾</span
+            ><span class="theme-label" id="themeLabel">حالت شب</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="eyebrow">POSITION CALCULATOR / 01</div>
+        <h1>اهرم دقیق،<br />با محاسبه هزینه‌ها.</h1>
+        <p>
+          قیمت ورود و استاپ را وارد کن؛ اهرم تئوری با لحاظ کارمزد ورود و خروج و
+          مارجین نگهداری محاسبه می‌شود. نوع پوزیشن نیز به‌صورت خودکار تشخیص داده
+          می‌شود.
+        </p>
+      </section>
+
+      <main class="layout">
+        <section class="card">
+          <div class="card-head">
+            <h2>پارامترهای پوزیشن</h2>
+            <span class="step">01 — INPUT</span>
+          </div>
+          <div class="fields">
+            <div class="field">
+              <label for="entry"
+                >قیمت ورود <span class="unit">ENTRY PRICE</span></label
+              >
+              <div class="input-wrap">
+                <input
+                  id="entry"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value="100"
+                  inputmode="decimal"
+                />
+              </div>
+            </div>
+            <div class="field">
+              <label for="stop"
+                >قیمت استاپ / لیکویید
+                <span class="unit">STOP PRICE</span></label
+              >
+              <div class="input-wrap">
+                <input
+                  id="stop"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value="98"
+                  inputmode="decimal"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="fee-head">
+            <strong>کارمزد معامله</strong
+            ><label class="sync"
+              ><input id="syncFees" type="checkbox" checked /> برابر نگه داشتن
+              کارمزدها</label
+            >
+          </div>
+          <div class="fields">
+            <div class="field">
+              <label for="entryFee"
+                >کارمزد ورود <span class="unit">ENTRY FEE</span></label
+              >
+              <div class="input-wrap">
+                <input
+                  id="entryFee"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value="0.05"
+                  inputmode="decimal"
+                />
+              </div>
+              <div class="field-hint">درصد از ارزش اسمی معامله</div>
+            </div>
+            <div class="field">
+              <label for="exitFee"
+                >کارمزد خروج <span class="unit">EXIT FEE</span></label
+              >
+              <div class="input-wrap">
+                <input
+                  id="exitFee"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value="0.05"
+                  inputmode="decimal"
+                />
+              </div>
+              <div class="field-hint">درصد از ارزش اسمی در قیمت خروج</div>
+            </div>
+            <div class="field full">
+              <label for="maintenance"
+                >مارجین نگهداری
+                <span class="unit">MAINTENANCE MARGIN</span></label
+              >
+              <div class="input-wrap">
+                <input
+                  id="maintenance"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value="0.5"
+                  inputmode="decimal"
+                />
+              </div>
+              <div class="field-hint">
+                درصد؛ مقدار واقعی را از مشخصات قرارداد صرافی بردار.
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="range-head">
+            <strong>محدوده مجاز اهرم</strong
+            ><button class="reset" id="resetBtn" type="button">
+              بازنشانی مقادیر
+            </button>
+          </div>
+          <div class="range-values">
+            <div>
+              <div class="mini-label">حداقل اهرم (MIN)</div>
+              <div class="input-wrap">
+                <input
+                  id="minLev"
+                  type="number"
+                  min="1"
+                  step="any"
+                  value="1"
+                  inputmode="decimal"
+                />
+              </div>
+            </div>
+            <div>
+              <div class="mini-label">حداکثر اهرم (MAX)</div>
+              <div class="input-wrap">
+                <input
+                  id="maxLev"
+                  type="number"
+                  min="1"
+                  step="any"
+                  value="125"
+                  inputmode="decimal"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="range-note">
+            خروجی در بازه حداقل و حداکثر محدود می‌شود. اگر اهرم محاسباتی بیرون
+            از بازه باشد، نزدیک‌ترین حد مجاز نمایش داده خواهد شد.
+          </div>
+        </section>
+
+        <aside class="card result-card">
+          <div class="result-top">
+            <div class="result-label">اهرم پیشنهادی محاسباتی</div>
+            <div id="positionType" class="status">LONG · لانگ</div>
+          </div>
+          <div class="lev-number" id="leverage">47.17<span>×</span></div>
+          <div class="subline" id="resultSub">
+            اهرم نهایی پس از اعمال محدوده
+          </div>
+          <div class="meter">
+            <div class="meter-fill" id="meterFill"></div>
+          </div>
+          <div class="meter-labels">
+            <span id="minLabel">MIN 1×</span><span id="maxLabel">MAX 125×</span>
+          </div>
+          <div class="stats">
+            <div class="stat">
+              <span>فاصله استاپ</span><strong id="distance">2.000%</strong>
+            </div>
+            <div class="stat">
+              <span>کارمزد رفت‌وبرگشت*</span
+              ><strong id="totalFee">0.100%</strong>
+            </div>
+            <div class="stat">
+              <span>اهرم خام</span><strong id="rawLev">47.17×</strong>
+            </div>
+            <div class="stat">
+              <span>سمت معامله</span><strong id="sideStat">Long</strong>
+            </div>
+          </div>
+          <div class="warning" id="warning" role="status"></div>
+          <div class="explain" id="formulaText">
+            <b>مدل محاسبه:</b> فاصله قیمت + هزینه ورود + هزینه خروج + مارجین
+            نگهداری، در مدل ساده‌شده ایزوله لحاظ شده‌اند.
+          </div>
+          <div class="footnote">
+            <strong>توجه:</strong> این خروجی تخمینی است، نه تضمین قیمت لیکویید
+            واقعی. قواعد صرافی، سطح مارجین، هزینه فاندینگ، اسلیپیج و کارمزد
+            لیکویید ممکن است نتیجه را تغییر دهند. نوع لانگ/شورت صرفاً از قیمت‌ها
+            تشخیص داده می‌شود و در فرمول اهرم دخالت ندارد.
+          </div>
+        </aside>
+      </main>
+      <div class="footer">
+        <span>LEVERAGE STUDIO · V1.0</span
+        ><span>ساخته‌شده برای محاسبه سریع و شفاف</span>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const fields = [
+          "entry",
+          "stop",
+          "entryFee",
+          "exitFee",
+          "maintenance",
+          "minLev",
+          "maxLev",
+        ];
+        const defaults = {
+          entry: "0",
+          stop: "0",
+          entryFee: "0.05",
+          exitFee: "0.05",
+          maintenance: "0.5",
+          minLev: "1",
+          maxLev: "200",
+        };
+        const fmt = (n, digits = 4) =>
+          Number.isFinite(n)
+            ? n.toLocaleString("en-US", {
+                maximumFractionDigits: digits,
+                minimumFractionDigits: 0,
+              })
+            : "—";
+        const pct = (n, d = 4) => fmt(n, d) + "%";
+        const setWarning = (msg) => {
+          $("warning").textContent = msg;
+          $("warning").classList.toggle("show", !!msg);
+        };
+        function calculate() {
+          if ($("syncFees").checked && $("exitFee").dataset.edited !== "true")
+            $("exitFee").value = $("entryFee").value;
+          const E = Number($("entry").value),
+            S = Number($("stop").value);
+          const fe = Number($("entryFee").value) / 100,
+            fx = Number($("exitFee").value) / 100,
+            m = Number($("maintenance").value) / 100;
+          const min = Number($("minLev").value),
+            max = Number($("maxLev").value);
+          if (
+            ![E, S, fe, fx, m, min, max].every(Number.isFinite) ||
+            E <= 0 ||
+            S <= 0 ||
+            E === S ||
+            fe < 0 ||
+            fx < 0 ||
+            m < 0 ||
+            min < 1 ||
+            max < min
+          ) {
+            $("leverage").innerHTML = "—<span>×</span>";
+            $("distance").textContent = "—";
+            $("totalFee").textContent = "—";
+            $("rawLev").textContent = "—";
+            $("sideStat").textContent = "—";
+            $("resultSub").textContent = "ورودی‌ها را بررسی کن";
+            $("meterFill").style.width = "0%";
+            setWarning(
+              E === S
+                ? "قیمت ورود و استاپ نباید برابر باشند."
+                : "مقادیر را بررسی کن؛ قیمت‌ها باید مثبت، نرخ‌ها نامنفی و حداقل اهرم ≤ حداکثر اهرم باشد.",
+            );
+            return;
+          }
+          const d = Math.abs(E - S) / E;
+          // Simplified isolated-margin model: 1/L = price move + entry fee + (exit price / entry price)*(exit fee + maintenance margin)
+          const denom = d + fe + (S / E) * (fx + m);
+          const raw = denom > 0 ? 1 / denom : Infinity;
+          const lev = Math.min(max, Math.max(min, raw));
+          const side = S < E ? "LONG" : "SHORT";
+          $("leverage").innerHTML = fmt(lev, 4) + "<span>×</span>";
+          $("distance").textContent = pct(d * 100, 4);
+          $("totalFee").textContent = pct((fe + (S / E) * fx) * 100, 4);
+          $("rawLev").textContent = fmt(raw, 4) + "×";
+          $("sideStat").textContent = side === "LONG" ? "Long" : "Short";
+          $("positionType").textContent =
+            side === "LONG" ? "LONG · لانگ" : "SHORT · شورت";
+          $("positionType").classList.toggle("short", side === "SHORT");
+          $("minLabel").textContent = "MIN " + fmt(min, 3) + "×";
+          $("maxLabel").textContent = "MAX " + fmt(max, 3) + "×";
+          const ratio = max === min ? 1 : (lev - min) / (max - min);
+          $("meterFill").style.width =
+            Math.max(0, Math.min(1, ratio)) * 100 + "%";
+          $("resultSub").textContent =
+            raw < min
+              ? "اهرم خام پایین‌تر از حداقل است؛ حداقل اعمال شد"
+              : raw > max
+                ? "اهرم خام بالاتر از حداکثر است؛ حداکثر اعمال شد"
+                : "اهرم در محدوده مجاز قرار دارد";
+          $("formulaText").innerHTML =
+            "<b>مدل محاسبه:</b> L = 1 ÷ [d + fᵢ + (S ÷ E) × (fₒ + m)]<br>d = |E − S| ÷ E. نرخ‌ها در فرمول به شکل اعشاری وارد می‌شوند.";
+          setWarning(
+            raw < min
+              ? "اهرم خام (" +
+                  fmt(raw, 4) +
+                  "×) از حداقل انتخابی کمتر است؛ خروجی روی " +
+                  fmt(min, 4) +
+                  "× محدود شده."
+              : raw > max
+                ? "اهرم خام (" +
+                  fmt(raw, 4) +
+                  "×) از حداکثر انتخابی بیشتر است؛ خروجی روی " +
+                  fmt(max, 4) +
+                  "× محدود شده."
+                : "",
+          );
+        }
+        $("entryFee").addEventListener("input", () => {
+          if ($("syncFees").checked) {
+            $("exitFee").dataset.edited = "false";
+            $("exitFee").value = $("entryFee").value;
+          }
+          calculate();
+        });
+        $("exitFee").addEventListener("input", () => {
+          $("exitFee").dataset.edited = "true";
+          if ($("syncFees").checked) {
+            $("syncFees").checked = false;
+          }
+          calculate();
+        });
+        $("syncFees").addEventListener("change", () => {
+          if ($("syncFees").checked) {
+            $("exitFee").dataset.edited = "false";
+            $("exitFee").value = $("entryFee").value;
+          }
+          calculate();
+        });
+        fields
+          .filter((x) => x !== "entryFee" && x !== "exitFee")
+          .forEach((id) => $(id).addEventListener("input", calculate));
+        $("resetBtn").addEventListener("click", () => {
+          Object.entries(defaults).forEach(([k, v]) => ($(k).value = v));
+          $("syncFees").checked = true;
+          $("exitFee").dataset.edited = "false";
+          calculate();
+        });
+        $("themeToggle").addEventListener("click", () => {
+          const dark = document.documentElement.dataset.theme !== "dark";
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+          $("themeIcon").textContent = dark ? "☀" : "☾";
+          $("themeLabel").textContent = dark ? "حالت روز" : "حالت شب";
+          $("themeToggle").setAttribute(
+            "aria-label",
+            dark ? "تغییر به تم روز" : "تغییر به تم شب",
+          );
+        });
+        $("exitFee").dataset.edited = "false";
+        calculate();
+      })();
+    </script>
+  </body>
+</html>

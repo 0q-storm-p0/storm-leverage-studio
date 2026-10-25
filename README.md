@@ -4,6 +4,9 @@ A lightweight, browser-based leverage calculator for estimating theoretical leve
 
 The interface is in Persian (Farsi) and uses a right-to-left layout.
 
+## Direct URL
+https://0q-storm-p0.github.io/storm-leverage-studio/
+
 ## Features
 
 - Calculates theoretical leverage using entry and stop prices.

@@ -59,4 +59,4 @@ This tool provides estimates for educational and planning purposes only. It does
 
 ## License
 
-No license is specified yet. If you want others to reuse, modify, or redistribute this project, add a license file such as `LICENSE` and choose a license that fits your intentions.
+MIT - Hmmm
